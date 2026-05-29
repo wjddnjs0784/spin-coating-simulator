@@ -76,8 +76,8 @@ function simulate(params) {
         1 + ((4 * omega * omega * h0m * h0m) / (3 * nu0)) * t
       );
 
-    analytical.push(hAnalytical * 1e6);
-    numerical.push(validation ? h * 1e6 : hAnalytical * 1e6 * (1 + 0.002 * Math.sin(t)));
+      analytical.push(hAnalytical * 1e6);
+      numerical.push(h * 1e6);
 
     const dhdt =
       -((2 * omega * omega * Math.pow(h, 3)) / (3 * nu)) -
@@ -86,10 +86,19 @@ function simulate(params) {
     h = Math.max(h + dhdt * dt, 1e-9);
   }
 
+  const finalProfile = profiles[profiles.length - 1];
+  const thicknesses = finalProfile.map((p) => p.h);
+
+  const maxH = Math.max(...thicknesses);
+  const minH = Math.min(...thicknesses);
+  const meanH =
+  thicknesses.reduce((sum, hValue) => sum + hValue, 0) / thicknesses.length;
+
+  const uniformity =
+  meanH > 0 ? ((maxH - minH) / (2 * meanH)) * 100 : 0;
+
   const finalCenter = center[center.length - 1];
   const finalEdge = edge[edge.length - 1];
-  const avg = (finalCenter + finalEdge) / 2;
-  const uniformity = avg > 0 ? (Math.abs(finalEdge - finalCenter) / avg) * 100 : 0;
 
   return {
     time,
@@ -97,6 +106,7 @@ function simulate(params) {
     middle,
     edge,
     profiles,
+    finalProfile,
     analytical,
     numerical,
     finalCenter,
